@@ -102,6 +102,8 @@ public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
             {
                 animating = false;
             }
+            
+            GUIHelper.RequestRepaint();
         }
         else if (evt.OnMouseDown(switchBackgroundRect, 0, true))
         {
