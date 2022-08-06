@@ -1,8 +1,10 @@
 # Switch Button
 
+**Requires [Odin Inspector](https://odininspector.com/)**. 
+
 **Draws a configurable switch button instead of Unity's default toggle button.**
 
-**Requires [Odin Inspector](https://odininspector.com/)**
+![Preview](Preview.gif)
 
 ### Installation
 
@@ -39,4 +41,3 @@ public class SomeMonoBehaviour : MonoBehaviour
     public bool SquareSwitch;
 }
 ```
-![Preview](Preview.gif)
