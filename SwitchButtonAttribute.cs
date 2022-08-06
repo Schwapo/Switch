@@ -71,13 +71,11 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
         var isOn = ValueEntry.SmartValue;
         var controlID = GUIUtility.GetControlID(controlHint, FocusType.Keyboard, switchBackgroundRect);
         var hasKeyboardFocus = GUIUtility.keyboardControl == controlID;
+        var targetBackgroundColor = isOn ? backgroundColorOn : backgroundColorOff;
+        var targetSwitchColor = isOn ? switchColorOn : switchColorOff;
 
-        if (evt.type == EventType.Layout && animating || ColorHasChanged())
+        if (evt.type == EventType.Layout && animating || ColorHasChanged(targetBackgroundColor, targetSwitchColor))
         {
-            var targetBackgroundColor = isOn ? backgroundColorOn : backgroundColorOff;
-            var targetSwitchColor = isOn ? switchColorOn : switchColorOff;
-            var targetSwitchPosition = isOn ? ButtonWidth * 0.5f : 0f;
-
             backgroundColor = backgroundColor.MoveTowards(
                 targetBackgroundColor,
                 EditorTimeHelper.Time.DeltaTime * AnimationSpeedMultiplier);
@@ -85,6 +83,8 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
             switchColor = switchColor.MoveTowards(
                 targetSwitchColor,
                 EditorTimeHelper.Time.DeltaTime * AnimationSpeedMultiplier);
+
+            var targetSwitchPosition = isOn ? ButtonWidth * 0.5f : 0f;
 
             switchPosition = Mathf.MoveTowards(
                 switchPosition,
@@ -133,18 +133,8 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
         animating = true;
     }
 
-    private bool ColorHasChanged()
+    private bool ColorHasChanged(Color targetBackgroundColor, Color targetSwitchColor)
     {
-        var isOn = ValueEntry.SmartValue;
-
-        var targetBackgroundColor = isOn
-            ? backgroundColorOnResolver.GetValue()
-            : backgroundColorOffResolver.GetValue();
-
-        var targetSwitchColor = isOn
-            ? switchColorOnResolver.GetValue()
-            : switchColorOffResolver.GetValue(); ;
-
         return backgroundColor != targetBackgroundColor || switchColor != targetSwitchColor;
     }
 
