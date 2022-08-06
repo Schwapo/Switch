@@ -74,7 +74,12 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
         var targetBackgroundColor = isOn ? backgroundColorOn : backgroundColorOff;
         var targetSwitchColor = isOn ? switchColorOn : switchColorOff;
 
-        if (evt.type == EventType.Layout && animating || ColorHasChanged(targetBackgroundColor, targetSwitchColor))
+        if (ColorHasChanged(targetBackgroundColor, targetSwitchColor))
+        {
+            animating = true;
+        }
+
+        if (evt.type == EventType.Layout && animating)
         {
             backgroundColor = backgroundColor.MoveTowards(
                 targetBackgroundColor,
@@ -97,8 +102,6 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
             {
                 animating = false;
             }
-
-            GUIHelper.RequestRepaint();
         }
         else if (evt.OnMouseDown(switchBackgroundRect, 0, true))
         {
