@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using UnityEngine;
 using Sirenix.Utilities;
 
@@ -72,7 +72,7 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
         var controlID = GUIUtility.GetControlID(controlHint, FocusType.Keyboard, switchBackgroundRect);
         var hasKeyboardFocus = GUIUtility.keyboardControl == controlID;
 
-        if (animating && evt.type == EventType.Layout)
+        if (evt.type == EventType.Layout && animating || ColorHasChanged())
         {
             var targetBackgroundColor = isOn ? backgroundColorOn : backgroundColorOff;
             var targetSwitchColor = isOn ? switchColorOn : switchColorOff;
@@ -131,6 +131,21 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
     {
         ValueEntry.SmartValue = newValue;
         animating = true;
+    }
+
+    private bool ColorHasChanged()
+    {
+        var isOn = ValueEntry.SmartValue;
+
+        var targetBackgroundColor = isOn
+            ? backgroundColorOnResolver.GetValue()
+            : backgroundColorOffResolver.GetValue();
+
+        var targetSwitchColor = isOn
+            ? switchColorOnResolver.GetValue()
+            : switchColorOffResolver.GetValue(); ;
+
+        return backgroundColor != targetBackgroundColor || switchColor != targetSwitchColor;
     }
 
     private Color Darken(Color color, float factor)
