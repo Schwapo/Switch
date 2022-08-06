@@ -8,11 +8,11 @@ using Sirenix.Utilities.Editor;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.OdinInspector.Editor.ValueResolvers;
 
-public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttribute, bool>
+public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
 {
     private const float AnimationSpeedMultiplier = 6f;
-    private const float ButtonWidth = 28f;
-    private static readonly int controlHint = "SwitchButtonControlHint".GetHashCode();
+    private const float SwitchWidth = 28f;
+    private static readonly int controlHint = "SwitchControlHint".GetHashCode();
 
     private ValueResolver<Color> backgroundColorOnResolver;
     private ValueResolver<Color> backgroundColorOffResolver;
@@ -34,7 +34,7 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
         var isOn = ValueEntry.SmartValue;
         backgroundColor = isOn ? backgroundColorOnResolver.GetValue() : backgroundColorOffResolver.GetValue();
         switchColor = isOn ? switchColorOnResolver.GetValue() : switchColorOffResolver.GetValue();
-        switchPosition = isOn ? ButtonWidth * 0.5f : 0f;
+        switchPosition = isOn ? SwitchWidth * 0.5f : 0f;
 
         whiteTexture = Texture2D.whiteTexture;
     }
@@ -61,10 +61,10 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
 
         var switchBackgroundRect = Attribute.Alignment switch
         {
-            SwitchButtonAlignment.Left => totalRect.AlignLeft(ButtonWidth).AlignCenterY(ButtonWidth * 0.5f),
-            SwitchButtonAlignment.Right => totalRect.AlignRight(ButtonWidth).AlignCenterY(ButtonWidth * 0.5f),
-            SwitchButtonAlignment.Center => totalRect.AlignCenterX(ButtonWidth).AlignCenterY(ButtonWidth * 0.5f),
-            _ => throw new ArgumentException("Invalid enum argument possible values are:\n- SwitchButtonAlignment.Left\n- SwitchButtonAlignment.Right\n- SwitchButtonAlignment.Center")
+            SwitchAlignment.Left => totalRect.AlignLeft(SwitchWidth).AlignCenterY(SwitchWidth * 0.5f),
+            SwitchAlignment.Right => totalRect.AlignRight(SwitchWidth).AlignCenterY(SwitchWidth * 0.5f),
+            SwitchAlignment.Center => totalRect.AlignCenterX(SwitchWidth).AlignCenterY(SwitchWidth * 0.5f),
+            _ => throw new ArgumentException("Invalid enum argument possible values are:\n- SwitchAlignment.Left\n- SwitchAlignment.Right\n- SwitchAlignment.Center")
         };
 
         var evt = Event.current;
@@ -89,12 +89,12 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
                 targetSwitchColor,
                 EditorTimeHelper.Time.DeltaTime * AnimationSpeedMultiplier);
 
-            var targetSwitchPosition = isOn ? ButtonWidth * 0.5f : 0f;
+            var targetSwitchPosition = isOn ? SwitchWidth * 0.5f : 0f;
 
             switchPosition = Mathf.MoveTowards(
                 switchPosition,
                 targetSwitchPosition,
-                EditorTimeHelper.Time.DeltaTime * AnimationSpeedMultiplier * ButtonWidth * 0.5f);
+                EditorTimeHelper.Time.DeltaTime * AnimationSpeedMultiplier * SwitchWidth * 0.5f);
 
             if (backgroundColor == targetBackgroundColor
                 && switchColor == targetSwitchColor
@@ -126,7 +126,7 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
         GUI.DrawTexture(switchBackgroundRect, whiteTexture, ScaleMode.StretchToFill, true, 0f, finalBackgroundColor, 0f, borderRadius);
 
         var finalSwitchColor = hasKeyboardFocus ? Darken(switchColor, 1.5f) : switchColor;
-        var switchRect = switchBackgroundRect.SetWidth(ButtonWidth * 0.5f).Padding(ButtonWidth * 0.07f).AddX(switchPosition);
+        var switchRect = switchBackgroundRect.SetWidth(SwitchWidth * 0.5f).Padding(SwitchWidth * 0.07f).AddX(switchPosition);
         GUI.DrawTexture(switchRect, whiteTexture, ScaleMode.StretchToFill, true, 0f, finalSwitchColor, 0f, borderRadius);
     }
 
@@ -148,7 +148,7 @@ public class SwitchButtonAttributeDrawer : OdinAttributeDrawer<SwitchButtonAttri
 }
 #endif
 
-public class SwitchButtonAttribute : Attribute
+public class SwitchAttribute : Attribute
 {
     private static readonly string defaultBackgroundColorOn = "@new Color(0.498f, 0.843f, 0.992f)";
     private static readonly string defaultBackgroundColorOff = "@new Color(0.165f, 0.165f, 0.165f)";
@@ -160,10 +160,10 @@ public class SwitchButtonAttribute : Attribute
     public string SwitchColorOn = null;
     public string SwitchColorOff = null;
     public bool Rounded = true;
-    public SwitchButtonAlignment Alignment;
+    public SwitchAlignment Alignment;
 
-    public SwitchButtonAttribute(
-        SwitchButtonAlignment alignment,
+    public SwitchAttribute(
+        SwitchAlignment alignment,
         string backgroundColorOn = null,
         string backgroundColorOff = null,
         string switchColorOn = null,
@@ -175,14 +175,14 @@ public class SwitchButtonAttribute : Attribute
         SetColors(backgroundColorOn, backgroundColorOff, switchColorOn, switchColorOff);
     }
 
-    public SwitchButtonAttribute(
+    public SwitchAttribute(
         string backgroundColorOn = null,
         string backgroundColorOff = null,
         string switchColorOn = null,
         string switchColorOff = null,
         bool rounded = true)
     {
-        Alignment = SwitchButtonAlignment.Left;
+        Alignment = SwitchAlignment.Left;
         Rounded = rounded;
         SetColors(backgroundColorOn, backgroundColorOff, switchColorOn, switchColorOff);
     }
@@ -200,7 +200,7 @@ public class SwitchButtonAttribute : Attribute
     }
 }
 
-public enum SwitchButtonAlignment
+public enum SwitchAlignment
 {
     Left,
     Right,
