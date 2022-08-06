@@ -2,7 +2,7 @@
 
 **Requires [Odin Inspector](https://odininspector.com/)**. 
 
-**Draws a configurable switch instead of Unity's default toggle button.**
+**Draws a configurable switch instead of Unity's default toggle.**
 
 ![Preview](Preview.gif)
 
