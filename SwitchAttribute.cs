@@ -3,6 +3,7 @@ using UnityEngine;
 using Sirenix.Utilities;
 
 #if UNITY_EDITOR
+using Sirenix.OdinInspector;
 using UnityEditor;
 using Sirenix.Utilities.Editor;
 using Sirenix.OdinInspector.Editor;
@@ -12,7 +13,7 @@ public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
 {
     private const float AnimationSpeedMultiplier = 6f;
     private const float SwitchWidth = 28f;
-    private static readonly int controlHint = "SwitchControlHint".GetHashCode();
+    private static readonly int ControlHint = "SwitchControlHint".GetHashCode();
 
     private ValueResolver<Color> backgroundColorOnResolver;
     private ValueResolver<Color> backgroundColorOffResolver;
@@ -23,6 +24,7 @@ public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
     private float switchPosition;
     private Texture whiteTexture;
     private bool animating;
+    private bool hasToggleLeftAttribute;
 
     protected override void Initialize()
     {
@@ -37,6 +39,7 @@ public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
         switchPosition = isOn ? SwitchWidth * 0.5f : 0f;
 
         whiteTexture = Texture2D.whiteTexture;
+        hasToggleLeftAttribute = Property.Attributes.HasAttribute<ToggleLeftAttribute>();
     }
 
     protected override void DrawPropertyLayout(GUIContent label)
@@ -54,7 +57,7 @@ public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
 
         var totalRect = EditorGUILayout.GetControlRect(label != null, EditorGUIUtility.singleLineHeight);
 
-        if (label != null)
+        if (label != null && !hasToggleLeftAttribute)
         {
             totalRect = EditorGUI.PrefixLabel(totalRect, label);
         }
@@ -69,7 +72,7 @@ public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
 
         var evt = Event.current;
         var isOn = ValueEntry.SmartValue;
-        var controlID = GUIUtility.GetControlID(controlHint, FocusType.Keyboard, switchBackgroundRect);
+        var controlID = GUIUtility.GetControlID(ControlHint, FocusType.Keyboard, switchBackgroundRect);
         var hasKeyboardFocus = GUIUtility.keyboardControl == controlID;
         var targetBackgroundColor = isOn ? backgroundColorOn : backgroundColorOff;
         var targetSwitchColor = isOn ? switchColorOn : switchColorOff;
@@ -83,18 +86,18 @@ public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
         {
             backgroundColor = backgroundColor.MoveTowards(
                 targetBackgroundColor,
-                EditorTimeHelper.Time.DeltaTime * AnimationSpeedMultiplier);
+                GUITimeHelper.LayoutDeltaTime * AnimationSpeedMultiplier);
 
             switchColor = switchColor.MoveTowards(
                 targetSwitchColor,
-                EditorTimeHelper.Time.DeltaTime * AnimationSpeedMultiplier);
+                GUITimeHelper.LayoutDeltaTime * AnimationSpeedMultiplier);
 
             var targetSwitchPosition = isOn ? SwitchWidth * 0.5f : 0f;
 
             switchPosition = Mathf.MoveTowards(
                 switchPosition,
                 targetSwitchPosition,
-                EditorTimeHelper.Time.DeltaTime * AnimationSpeedMultiplier * SwitchWidth * 0.5f);
+                GUITimeHelper.LayoutDeltaTime * AnimationSpeedMultiplier * SwitchWidth * 0.5f);
 
             if (backgroundColor == targetBackgroundColor
                 && switchColor == targetSwitchColor
@@ -102,15 +105,15 @@ public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
             {
                 animating = false;
             }
-            
+
             GUIHelper.RequestRepaint();
         }
-        else if (evt.OnMouseDown(switchBackgroundRect, 0, true))
+        else if (evt.OnMouseDown(switchBackgroundRect, 0))
         {
             GUIUtility.hotControl = controlID;
             GUIUtility.keyboardControl = controlID;
         }
-        else if (evt.OnMouseUp(switchBackgroundRect, 0, true))
+        else if (evt.OnMouseUp(switchBackgroundRect, 0))
         {
             GUIUtility.hotControl = 0;
             GUIUtility.keyboardControl = 0;
@@ -118,9 +121,19 @@ public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
         }
         else if (hasKeyboardFocus && evt.type == EventType.KeyDown)
         {
-            if (evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.Space) ChangeValueTo(!isOn);
-            else if (evt.keyCode == KeyCode.LeftArrow) ChangeValueTo(false);
-            else if (evt.keyCode == KeyCode.RightArrow) ChangeValueTo(true);
+            switch (evt.keyCode)
+            {
+                case KeyCode.Return:
+                case KeyCode.Space:
+                    ChangeValueTo(!isOn);
+                    break;
+                case KeyCode.LeftArrow:
+                    ChangeValueTo(false);
+                    break;
+                case KeyCode.RightArrow:
+                    ChangeValueTo(true);
+                    break;
+            }
         }
 
         var finalBackgroundColor = hasKeyboardFocus ? Darken(backgroundColor, 1.5f) : backgroundColor;
@@ -130,6 +143,11 @@ public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
         var finalSwitchColor = hasKeyboardFocus ? Darken(switchColor, 1.5f) : switchColor;
         var switchRect = switchBackgroundRect.SetWidth(SwitchWidth * 0.5f).Padding(SwitchWidth * 0.07f).AddX(switchPosition);
         GUI.DrawTexture(switchRect, whiteTexture, ScaleMode.StretchToFill, true, 0f, finalSwitchColor, 0f, borderRadius);
+
+        if (hasToggleLeftAttribute)
+        {
+            EditorGUI.LabelField(totalRect.AddX(SwitchWidth + 4f), label);
+        }
     }
 
     private void ChangeValueTo(bool newValue)
@@ -152,16 +170,16 @@ public class SwitchAttributeDrawer : OdinAttributeDrawer<SwitchAttribute, bool>
 
 public class SwitchAttribute : Attribute
 {
-    private static readonly string defaultBackgroundColorOn = "@new Color(0.498f, 0.843f, 0.992f)";
-    private static readonly string defaultBackgroundColorOff = "@new Color(0.165f, 0.165f, 0.165f)";
-    private static readonly string defaultSwitchColorOn = defaultBackgroundColorOff;
-    private static readonly string defaultSwitchColorOff = defaultBackgroundColorOn;
+    private static readonly string DefaultBackgroundColorOn = "@new Color(0.498f, 0.843f, 0.992f)";
+    private static readonly string DefaultBackgroundColorOff = "@new Color(0.165f, 0.165f, 0.165f)";
+    private static readonly string DefaultSwitchColorOn = DefaultBackgroundColorOff;
+    private static readonly string DefaultSwitchColorOff = DefaultBackgroundColorOn;
 
     public string BackgroundColorOn = null;
     public string BackgroundColorOff = null;
     public string SwitchColorOn = null;
     public string SwitchColorOff = null;
-    public bool Rounded = true;
+    public bool Rounded;
     public SwitchAlignment Alignment;
 
     public SwitchAttribute(
@@ -195,10 +213,10 @@ public class SwitchAttribute : Attribute
         string switchColorOn,
         string switchColorOff)
     {
-        BackgroundColorOn = backgroundColorOn ?? defaultBackgroundColorOn;
-        BackgroundColorOff = backgroundColorOff ?? defaultBackgroundColorOff;
-        SwitchColorOn = switchColorOn ?? backgroundColorOff ?? defaultSwitchColorOn;
-        SwitchColorOff = switchColorOff ?? backgroundColorOn ?? defaultSwitchColorOff;
+        BackgroundColorOn = backgroundColorOn ?? DefaultBackgroundColorOn;
+        BackgroundColorOff = backgroundColorOff ?? DefaultBackgroundColorOff;
+        SwitchColorOn = switchColorOn ?? backgroundColorOff ?? DefaultSwitchColorOn;
+        SwitchColorOff = switchColorOff ?? backgroundColorOn ?? DefaultSwitchColorOff;
     }
 }
 
